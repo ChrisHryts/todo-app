@@ -1,21 +1,39 @@
-import React from 'react';
-import './App.scss';
-
-interface Props {
-  onClick: () => void;
-  children: React.ReactNode;
-}
-
-export const Provider: React.FC<Props> = React.memo(({ onClick, children }) => (
-  <button type="button" onClick={onClick}>
-    {children}
-  </button>
-));
+import React, { useEffect } from 'react';
+import { getTodos } from './api/todos';
+import { useTodosContext } from './context/useTodosContext';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { TodoList } from './components/TodoList';
+import { ErrorNotification } from './components/ErrorNotification';
+import { Error } from './types/Error';
 
 export const App: React.FC = () => {
+  const { todos, setTodos, handleError, setIsInputFocused } = useTodosContext();
+
+  useEffect(() => {
+    setIsInputFocused(true);
+
+    getTodos()
+      .then(setTodos)
+      .catch(() => handleError(Error.loadTodos));
+  }, [setTodos, handleError, setIsInputFocused]);
+
   return (
-    <div className="starter">
-      <Provider onClick={() => ({})}>TodoList</Provider>
+    <div className="todoapp">
+      <h1 className="todoapp__title">todos</h1>
+
+      <div className="todoapp__content">
+        <Header />
+
+        {todos.length !== 0 && (
+          <>
+            <TodoList />
+            <Footer />
+          </>
+        )}
+      </div>
+
+      <ErrorNotification />
     </div>
   );
 };
